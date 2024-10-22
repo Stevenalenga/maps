@@ -12,8 +12,8 @@ class User(Base):
     hashed_password = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Define the relationship to the Location model
-    locations = relationship("Location", back_populates="user", cascade="all, delete-orphan")
+    # Change 'user' to 'owner' to match the Location model
+    locations = relationship("Location", back_populates="owner")
 
 class Location(Base):
     __tablename__ = "locations"
@@ -24,6 +24,7 @@ class Location(Base):
     longitude = Column(Float)
     user_id = Column(Integer, ForeignKey("users.id"))
 
+    # This is correct, no change needed here
     owner = relationship("User", back_populates="locations")
     images = relationship("Image", back_populates="location", cascade="all, delete-orphan")
     facts = relationship("Fact", back_populates="location", cascade="all, delete-orphan")
@@ -35,7 +36,6 @@ class Image(Base):
     image_url = Column(String, nullable=False)
     location_id = Column(Integer, ForeignKey("locations.id"))
 
-    # Define the relationship
     location = relationship("Location", back_populates="images")
 
 class Fact(Base):
@@ -45,5 +45,4 @@ class Fact(Base):
     description = Column(String, nullable=False)
     location_id = Column(Integer, ForeignKey("locations.id"))
 
-    # Define the relationship
     location = relationship("Location", back_populates="facts")

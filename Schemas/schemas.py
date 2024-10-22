@@ -87,3 +87,7 @@ class AIQuery(BaseModel):
     latitude: float
     longitude: float
     radius: float
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
