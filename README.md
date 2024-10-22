@@ -30,4 +30,4 @@
 
    ## Contributing
 
-   [Explain your workflow, e.g., create a new branch for each feature, make a pull request, etc.]
+   [create a new branch for each feature you also reachout to stevenkmola@gmail.com for further details or 
