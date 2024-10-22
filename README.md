@@ -1,12 +1,12 @@
    # MapsAPI
 
-   This is a FastAPI application for [brief description of your project].
+   This is a FastAPI application for getting user locations and details within a certain radius.
 
    ## Setup
 
    1. Clone the repository:
       ```
-      git clone https://github.com/yourusername/mapsapi.git
+      git clone https://github.com/stevenalenga/mapsapi.git
       cd mapsapi
       ```
 
@@ -21,7 +21,7 @@
       pip install -r requirements.txt
       ```
 
-   4. Set up your .env file with necessary environment variables.
+   4. Set up your .env file with the necessary environment variables.
 
    5. Run the application:
       ```
