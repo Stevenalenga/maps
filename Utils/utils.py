@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from dotenv import load_dotenv
 import os
+import secrets
+import string
 
 load_dotenv()
 # Define your secret key and algorithm for JWT
@@ -47,3 +49,12 @@ def decode_access_token(token: str) -> dict | None:
         return payload
     except JWTError:
         return None
+
+def generate_api_key(length=32):
+    """Generate a secure random API key."""
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+# You can use this function to generate an API key:
+# print(generate_api_key())
+# Then copy the output to your .env file

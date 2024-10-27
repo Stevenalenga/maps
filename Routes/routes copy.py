@@ -10,22 +10,9 @@ from Utils.ai_utils import get_nearby_locations
 from Oauth.oauth import get_current_user, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-from fastapi.security.api_key import APIKeyHeader
-from fastapi import Security, Request
-from decouple import config
-
-API_KEY = config("APP_API_KEY")
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-async def get_api_key(request: Request, api_key_header: str = Security(api_key_header)):
-    if api_key_header == API_KEY:
-        return api_key_header
-    elif request.headers.get("Origin") == config("FRONTEND_URL", default="http://localhost:3000"):
-        return True  # Allow requests from your web app
-    raise HTTPException(status_code=403, detail="Could not validate API Key")
 
 app = FastAPI()
-router = APIRouter(prefix="/mapapi/v1", dependencies=[Depends(get_api_key)])
+router = APIRouter(prefix="/mapapi/v1")
 
 # Dependency to get DB session
 def get_db():
@@ -38,7 +25,7 @@ def get_db():
 # Routes
 
 #oauth
-@router.post("/auth/register", response_model=UserSchema, dependencies=[])
+@router.post("/auth/register", response_model=UserSchema)
 def register_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # Check if user already exists
     if db.query(User).filter(User.email == form_data.username).first():
@@ -51,7 +38,7 @@ def register_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session 
     db.refresh(db_user)
     return UserSchema.model_validate(db_user)  # Use from_orm to convert to Pydantic schema
 
-@router.post("/auth/login", response_model=Token, dependencies=[])
+@router.post("/auth/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -67,13 +54,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {"access_token": access_token, "token_type": "bearer"}
 
 #Oauth2
-@router.post("/auth/login/google", dependencies=[])
+@router.post("/auth/login/google")
 async def login_google(code: str):
     """Endpoint for Google login"""
     user_info = await google_oauth(code)
     return {"message": "Successfully logged in with Google", "user_info": user_info}
 
-@router.post("/auth/login/facebook", dependencies=[])
+@router.post("/auth/login/facebook")
 async def login_facebook(access_token: str):
     """Endpoint for Facebook login"""
     user_info = await facebook_oauth(access_token)
