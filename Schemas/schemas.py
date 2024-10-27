@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -11,8 +11,10 @@ class UserBase(BaseModel):
         from_attributes = True  # Allows creating Pydantic models from ORM objects
 
 # User Creation Schema
-class UserCreate(UserBase):
-    password: str  # Password field for user registration
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
 
 # User Login Schema
 class UserLogin(BaseModel):
@@ -34,6 +36,7 @@ class LocationBase(BaseModel):
     name: str
     latitude: float
     longitude: float
+    description: str | None = None
 
     class Config:
         from_attributes = True  # Use from_attributes for ORM objects
@@ -43,9 +46,10 @@ class LocationCreate(LocationBase):
     pass
 
 # Location Response Schema
-class Location(LocationBase):
+class LocationSchema(LocationBase):
     id: int
-    user_id: int 
+    user_id: int
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -91,3 +95,15 @@ class AIQuery(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+class User(BaseModel):
+    id: int
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True
+

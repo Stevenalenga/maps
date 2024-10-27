@@ -1,60 +1,45 @@
-# oauth2.py
-
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2AuthorizationCodeBearer
-import requests
 import os
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+from DB.database import get_db
+from Models.models import User
+from Schemas.schemas import TokenData
+from datetime import datetime, timedelta
 
-# Replace these with your actual OAuth credentials
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-FACEBOOK_APP_ID = os.getenv("FACEBOOK_APP_ID")
-FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# OAuth2 Scheme
-oauth2_scheme = OAuth2AuthorizationCodeBearer(
-    authorizationUrl="https://accounts.google.com/o/oauth2/auth",
-    tokenUrl="https://oauth2.googleapis.com/token"
-)
+# Use environment variables
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
-async def google_oauth(code: str):
-    """Authenticate user with Google OAuth"""
-    token_url = "https://oauth2.googleapis.com/token"
-    user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
-    # Exchange code for access token
-    response = requests.post(
-        token_url,
-        data={
-            "code": code,
-            "client_id": GOOGLE_CLIENT_ID,
-            "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": "YOUR_REDIRECT_URI",  # Replace with your redirect URI
-            "grant_type": "authorization_code"
-        },
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
     )
-    
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Invalid Google authorization code.")
-    
-    token_data = response.json()
-    access_token = token_data.get("access_token")
-
-    # Fetch user info
-    user_info_response = requests.get(user_info_url, headers={"Authorization": f"Bearer {access_token}"})
-    user_info = user_info_response.json()
-    
-    return user_info
-
-
-async def facebook_oauth(access_token: str):
-    """Authenticate user with Facebook OAuth"""
-    user_info_url = f"https://graph.facebook.com/me?access_token={access_token}&fields=id,name,email"
-
-    response = requests.get(user_info_url)
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Invalid Facebook access token.")
-    
-    user_info = response.json()
-    return user_info
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    user = db.query(User).filter(User.email == token_data.username).first()
+    if user is None:
+        raise credentials_exception
+    return user

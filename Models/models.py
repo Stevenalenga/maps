@@ -12,7 +12,7 @@ class User(Base):
     hashed_password = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Change 'user' to 'owner' to match the Location model
+    # Change this line to match the back_populates in Location
     locations = relationship("Location", back_populates="owner")
 
 class Location(Base):
@@ -23,8 +23,10 @@ class Location(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     user_id = Column(Integer, ForeignKey("users.id"))
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # This is correct, no change needed here
+    # Add this line to complete the relationship
     owner = relationship("User", back_populates="locations")
     images = relationship("Image", back_populates="location", cascade="all, delete-orphan")
     facts = relationship("Fact", back_populates="location", cascade="all, delete-orphan")

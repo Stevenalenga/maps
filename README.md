@@ -30,4 +30,4 @@
 
    ## Contributing
 
-   [create a new branch for each feature you also reachout to stevenkmola@gmail.com for further details or 
+   [create a new branch for each feature you also reachout to stevenkmola@gmail.com for further details or to get a valid api key
