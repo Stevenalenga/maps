@@ -1,4 +1,4 @@
-
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 
 
@@ -12,5 +12,6 @@ class Settings(BaseSettings):
         env_file = ".env"  # Load environment variables from a .env file
         env_file_encoding = 'utf-8'  # Specify encoding if necessary
 
+load_dotenv()
 settings = Settings()
 

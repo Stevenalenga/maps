@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from users import *
-
+from Schemas.users import User
 
 class LocationBase(BaseModel):
     name: str
@@ -11,12 +10,23 @@ class LocationBase(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+
 class LocationCreate(LocationBase):
     pass
+
 
 class Location(LocationBase):
     id: int
     created_at: datetime
-    owner: User
+    owner: User  
+
+
+class LocationSchema(LocationBase):
+    id: int
+    user_id: int  
+    created_at: datetime
+
+    class Config:
+        orm_mode = True  
 
   

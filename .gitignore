@@ -124,6 +124,7 @@ celerybeat.pid
 # Environments
 mapsapi/App/.env
 mapsapi/env
+mapsapi/app/__pycache__
 /.env
 
 .venv

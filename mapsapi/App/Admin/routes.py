@@ -42,3 +42,26 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     return {"detail": "User deleted successfully"}
 
 # ... existing code ...
+
+
+@router.put("/{user_id}", response_model=Userschema)  # {{ edit_1 }} Define the update route
+def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db),):
+    logger.info(f"Updating user with ID: {user_id}")
+    try:
+        db_user = db.query(Usermodels).filter(Usermodels.id == user_id).first()
+        if db_user is None:
+            logger.warning(f"User not found: user_id={user_id}")
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Update user fields
+        db_user.username = user_update.username
+        db_user.email = user_update.email
+        db_user.password = get_password_hash(user_update.password)  # Assuming you have a function to hash passwords
+
+        db.commit()  # Commit the changes to the database
+        db.refresh(db_user)  # Refresh the instance to get updated values
+        logger.info(f"User updated successfully: {db_user.username} with email: {db_user.email}")
+        return db_user
+    except Exception as e:
+        logger.error(f"Error updating user {user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while updating the user")
