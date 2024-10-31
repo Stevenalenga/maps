@@ -8,6 +8,7 @@ from Schemas.tags import TagResponse, TagCreate
 from database import get_db
 
 # Configure logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ def create_tag(tag: TagCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail="An error occurred while creating the tag.")
 
-@router.get("/tags/", response_model=List[TagResponse])
+@router.get("/tags/search", response_model=List[TagResponse])
 def search_tags(query: Optional[str] = None, db: Session = Depends(get_db)):
     logger.info(f"Searching tags with query: {query}")
     if query:
@@ -42,3 +43,6 @@ def search_tags(query: Optional[str] = None, db: Session = Depends(get_db)):
         tags = db.query(Tag).all()
     logger.info(f"Found {len(tags)} tags")
     return tags
+
+
+
