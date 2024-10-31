@@ -22,7 +22,7 @@ import models
 target_metadata = models.Base.metadata
 
 # Import your settings configuration
-from App.config import settings  # Adjust the import path based on your project structure
+from config import *  # Adjust the import path based on your project structure
 
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
@@ -33,7 +33,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Import your metadata for Alembic to recognize your models
-from App.models import Base  # Adjust the path based on your project structure
+from models import Base  # Adjust the path based on your project structure
 target_metadata = Base.metadata
 
 # Set the SQLAlchemy URL dynamically using settings

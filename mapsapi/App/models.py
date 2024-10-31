@@ -9,6 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     locations = relationship("Location", back_populates="owner")

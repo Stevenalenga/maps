@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-import schemas, crud
+import mapsapi.App.Schemas.schemas as schemas, crud
 from database import get_db
 
-router = APIRouter()
+router = APIRouter(prefix="/api/v2")
 @router.post("/", response_model=schemas.Location)
 def create_location(location: schemas.LocationCreate, user_id: int, db: Session = Depends(get_db)):
     return crud.create_location(db=db, location=location, user_id=user_id)

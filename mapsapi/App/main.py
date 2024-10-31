@@ -1,11 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from Api import users, locations, tags, friendships
+from Auth import auth
+from Api import users as users
 
 
 # Initialize the FastAPI application
-app = FastAPI(title="My FastAPI App")
+app = FastAPI(
+    title="My API",
+    description="This is a maps api project, meant to give details on locations",
+    version="3.5.0",
+    terms_of_service="http://mola.com/terms/",
+    contact={
+        "name": "Steven Alenga",
+        "url": "http://steven.alenga@gmail.com/contact/",
+        "email": "steven.alenga@gmail.com",
+    },
+    license_info={
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+    },
+)
 
 # Add CORS middleware
 app.add_middleware(
@@ -17,16 +32,18 @@ app.add_middleware(
 )
 
 # Create the database tables
-@app.on_event("startup")
+@app.on_event("startup")  # Use on_event for startup
 async def startup():
-    # Create all tables
-    Base.metadata.create_all(bind=engine)
+  Base.metadata.create_all(bind=engine)
+
+  yield  
 
 # Include the routers for different API endpoints
-app.include_router(users.router, prefix="/users", tags=["users"])
-app.include_router(locations.router, prefix="/locations", tags=["locations"])
-app.include_router(tags.router, prefix="/tags", tags=["tags"])
-app.include_router(friendships.router, prefix="/friendships", tags=["friendships"])
+app.include_router(auth.router)
+app.include_router(users.router, tags=["users"])
+#app.include_router(locations.router, prefix="/locations", tags=["locations"])
+#app.include_router(tags.router, prefix="/tags", tags=["tags"])
+#app.include_router(friendships.router, prefix="/friendships", tags=["friendships"])
 
 # Root endpoint
 @app.get("/")

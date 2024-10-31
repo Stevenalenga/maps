@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import schemas, crud
+import mapsapi.App.Schemas.schemas as schemas, crud
 from database import get_db
 from typing import List  # Add this import
 
-router = APIRouter()
+router = APIRouter(prefix="/api/v2")
 
 @router.post("/", response_model=schemas.Tag)
 def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
