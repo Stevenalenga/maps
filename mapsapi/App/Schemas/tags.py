@@ -1,7 +1,12 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
-from datetime import datetime
 
+
+class TagResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
 
 
 
