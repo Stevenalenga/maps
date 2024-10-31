@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from database import Base
 from sqlalchemy.sql import func
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -51,6 +52,7 @@ class Friendship(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow) 
 
     user = relationship("User", back_populates="friendships", foreign_keys=[user_id])
     friend = relationship("User", foreign_keys=[friend_id])

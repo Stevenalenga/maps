@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from Auth import auth
-from Api import users ,locations,tags
+from Api import users ,locations,tags,friendships
 
 
 # Initialize the FastAPI application
@@ -43,7 +43,7 @@ app.include_router(auth.router)
 app.include_router(users.router, tags=["users"])
 app.include_router(locations.router, tags=["locations"])
 app.include_router(tags.router, tags=["tags"])
-#app.include_router(friendships.router, prefix="/friendships", tags=["friendships"])
+app.include_router(friendships.router, tags=["friendships"])
 
 # Root endpoint
 @app.get("/")
