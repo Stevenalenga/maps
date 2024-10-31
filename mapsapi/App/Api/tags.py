@@ -44,5 +44,17 @@ def search_tags(query: Optional[str] = None, db: Session = Depends(get_db)):
     logger.info(f"Found {len(tags)} tags")
     return tags
 
+@router.delete("/tags/{tag_id}", status_code=204)  # Set status_code to 204 for successful deletion
+def delete_tag(tag_id: int, db: Session = Depends(get_db)):
+    logger.info(f"Attempting to delete tag with ID: {tag_id}")
+    tag_to_delete = db.query(Tag).filter(Tag.id == tag_id).first()
+    
+    if tag_to_delete is None:
+        logger.warning(f"Tag with ID {tag_id} not found.")
+        raise HTTPException(status_code=404, detail="Tag not found.")
+    
+    db.delete(tag_to_delete)
+    db.commit()
+    logger.info(f"Tag with ID {tag_id} deleted successfully.")
 
 
