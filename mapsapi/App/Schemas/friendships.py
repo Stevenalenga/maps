@@ -13,4 +13,4 @@ class Friendship(FriendshipBase):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        form_attributes = True

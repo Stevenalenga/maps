@@ -42,13 +42,13 @@ async def create_location(
 ):
     try:
         logger.info(f"Creating new location for user: {current_user.id}")
-        location_data = location.model_dump()
+        location_data = location.dict()  # Use dict() instead of model_dump()
         db_location = LocationModel(**location_data, user_id=current_user.id)
         db.add(db_location)
         db.commit()
         db.refresh(db_location)
         logger.info(f"Location created successfully for user: {current_user.id}")
-        return db_location
+        return db_location  # Return the created location
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Database error creating location for user {current_user.id}: {str(e)}")
@@ -56,4 +56,55 @@ async def create_location(
     except Exception as e:
         logger.error(f"Unexpected error creating location for user {current_user.id}: {str(e)}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
-    return locations
+
+@router.put("/locations/{location_id}", response_model=LocationSchema)  # Route for updating a location
+async def update_location(
+    location_id: int,
+    location: LocationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    logger.info(f"Updating location ID: {location_id} for user: {current_user.id}")
+    
+    # Find the location to update
+    db_location = db.query(LocationModel).filter(LocationModel.id == location_id, LocationModel.user_id == current_user.id).first()
+    
+    if db_location is None:
+        logger.warning(f"Location ID {location_id} not found for user: {current_user.id}.")
+        raise HTTPException(status_code=404, detail="Location not found.")
+    
+    # Update the location's attributes
+    db_location.name = location.name
+    db_location.latitude = location.latitude
+    db_location.longitude = location.longitude
+    
+    try:
+        db.commit()
+        db.refresh(db_location)  # Refresh to get the updated data
+        logger.info(f"Location ID {location_id} updated successfully for user: {current_user.id}.")
+        return db_location
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Database error updating location ID {location_id} for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while updating the location.")
+    except Exception as e:
+        logger.error(f"Unexpected error updating location ID {location_id} for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
+@router.delete("/locations/{location_id}", status_code=204)  # Route for deleting a location
+async def delete_location(
+    location_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    logger.info(f"Attempting to delete location ID: {location_id} for user: {current_user.id}")
+    
+    # Find the location to delete
+    db_location = db.query(LocationModel).filter(LocationModel.id == location_id, LocationModel.user_id == current_user.id).first()
+    
+    if db_location is None:
+        logger.warning(f"Location ID {location_id} not found for user: {current_user.id}.")
+        raise HTTPException(status_code=404, detail="Location not found.")
+    
+
