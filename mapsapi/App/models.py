@@ -40,10 +40,12 @@ class Fact(Base):
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String, nullable=False)
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # New field for user ID
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     source = Column(String, default="user")
 
     location = relationship("Location", back_populates="facts")
+    user = relationship("User")
 
 class Tag(Base):
     __tablename__ = "tags"

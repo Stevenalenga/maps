@@ -33,6 +33,8 @@ async def get_user_locations(
         logger.error(f"Error fetching locations for user {current_user.id}: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail="An error occurred while fetching locations")
+    
+
 
 @router.post("/locations", response_model=LocationSchema)
 async def create_location(

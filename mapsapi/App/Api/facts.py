@@ -50,18 +50,14 @@ def create_fact(
         raise HTTPException(status_code=404, detail="Location not found.")
     
     # Create Fact instance using the description from the request body
-    new_fact = Fact(description=fact.description, location_id=location_id)  # Use location_id from the path
+    new_fact = Fact(description=fact.description, location_id=location_id, user_id=current_user.id)  # Include user_id
     
     try:
         db.add(new_fact)
         db.commit()
         db.refresh(new_fact)  # Refresh the instance to get the new id and created_at
         logger.info(f"Fact created successfully: {new_fact.id} for location ID: {location_id}")
-        return FactResponse.from_orm(new_fact)  # Transforming the SQLAlchemy model to Pydantic response model
-    except IntegrityError:
-        logger.warning(f"Failed to create fact for location ID: {location_id}. It may already exist.")
-        db.rollback()
-        raise HTTPException(status_code=400, detail="A fact with this description already exists for this location.")
+        return FactResponse.model_validate(new_fact)  # Transforming the SQLAlchemy model to Pydantic response model
     except Exception as e:
         logger.error(f"Error creating fact: {str(e)}")
         db.rollback()
@@ -125,7 +121,7 @@ def update_fact(
     try:
         db.commit()  # Commit the changes to the database
         logger.info(f"Fact with ID {fact_id} updated successfully for location ID: {location_id}.")
-        return FactResponse.from_orm(fact_to_update)  # Return the updated fact
+        return FactResponse.model_validate(fact_to_update)  # Return the updated fact
     except IntegrityError:
         logger.warning(f"Failed to update fact with ID: {fact_id}.")
         db.rollback()
