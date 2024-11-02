@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime,Float, UniqueConstraint
 from sqlalchemy.orm import relationship
 from database import Base
 from sqlalchemy.sql import func
@@ -16,18 +16,23 @@ class User(Base):
     locations = relationship("Location", back_populates="owner")
     friendships = relationship("Friendship", back_populates="user", foreign_keys="Friendship.user_id")
 
+
 class Location(Base):
     __tablename__ = "locations"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    latitude = Column(String, nullable=False)
-    longitude = Column(String, nullable=False)
+    latitude = Column(Float, nullable=False)  # Change to Float
+    longitude = Column(Float, nullable=False)  # Change to Float
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     owner = relationship("User", back_populates="locations")
     facts = relationship("Fact", back_populates="location")
+
+    __table_args__ = (
+        UniqueConstraint('latitude', 'longitude', name='uq_lat_long'),  # Ensure unique latitude and longitude
+    )
 
 class Fact(Base):
     __tablename__ = "facts"

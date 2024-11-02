@@ -5,7 +5,7 @@ from Schemas.locations import LocationSchema, LocationCreate
 from database import get_db
 from models import User
 from models import Location as LocationModel
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import logging
 from fastapi.logger import logger as fastapi_logger
 from Utils.oauth2 import get_current_user
@@ -49,6 +49,10 @@ async def create_location(
         db.refresh(db_location)
         logger.info(f"Location created successfully for user: {current_user.id}")
         return db_location  # Return the created location
+    except IntegrityError as e:  # Catching unique constraint violation
+        db.rollback()
+        logger.error(f"Unique constraint violation for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=400, detail="Location with the same latitude and longitude already exists.")
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Database error creating location for user {current_user.id}: {str(e)}")
@@ -91,7 +95,6 @@ async def update_location(
         logger.error(f"Unexpected error updating location ID {location_id} for user {current_user.id}: {str(e)}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-
 @router.delete("/locations/{location_id}", status_code=204)  # Route for deleting a location
 async def delete_location(
     location_id: int,
@@ -107,4 +110,9 @@ async def delete_location(
         logger.warning(f"Location ID {location_id} not found for user: {current_user.id}.")
         raise HTTPException(status_code=404, detail="Location not found.")
     
+    db.delete(db_location)
+    db.commit()
+    
+    logger.info(f"Location ID {location_id} deleted successfully for user: {current_user.id}.")
+    return {"detail": f"Location ID {location_id} deleted successfully."}
 

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from models import Fact, Location 
+from models import Fact, Location ,User
 from database import get_db
+from Utils.oauth2 import get_current_user
 from typing import List
 import logging
 from Schemas.facts import FactResponse  ,FactCreate
@@ -14,8 +15,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v2")
 
 @router.get("/locations/{location_id}/facts", response_model=List[FactResponse])  # Use the Pydantic model here
-def get_facts_by_location(location_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Fetching facts for location ID: {location_id}")
+def get_facts_by_location(
+    location_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)  # Ensure user is authenticated
+):
+    logger.info(f"Fetching facts for location ID: {location_id} by user ID: {current_user.id}")
     
     # Query the database for facts associated with the location
     facts = db.query(Fact).filter(Fact.location_id == location_id).all()
@@ -30,8 +35,13 @@ def get_facts_by_location(location_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/locations/{location_id}/facts", response_model=FactResponse)
-def create_fact(location_id: int, fact: FactCreate, db: Session = Depends(get_db)):
-    logger.info(f"Creating fact for location ID: {location_id} with description: {fact.description}")
+def create_fact(
+    location_id: int, 
+    fact: FactCreate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)  # Ensure user is authenticated
+):
+    logger.info(f"Creating fact for location ID: {location_id} with description: {fact.description} by user ID: {current_user.id}")
     
     # Check if the location ID exists
     location_exists = db.query(Location).filter(Location.id == location_id).first()
@@ -59,8 +69,13 @@ def create_fact(location_id: int, fact: FactCreate, db: Session = Depends(get_db
 
 
 @router.delete("/locations/{location_id}/facts/{fact_id}", status_code=204)  # Route for deleting a fact by location
-def delete_fact(location_id: int, fact_id: int, db: Session = Depends(get_db)):
-    logger.info(f"Attempting to delete fact with ID: {fact_id} for location ID: {location_id}")
+def delete_fact(
+    location_id: int, 
+    fact_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)  # Ensure user is authenticated
+):
+    logger.info(f"Attempting to delete fact with ID: {fact_id} for location ID: {location_id} by user ID: {current_user.id}")
     
     # Check if the location ID exists
     location_exists = db.query(Location).filter(Location.id == location_id).first()
@@ -82,8 +97,14 @@ def delete_fact(location_id: int, fact_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/locations/{location_id}/facts/{fact_id}", response_model=FactResponse)  # Route for updating a fact by location
-def update_fact(location_id: int, fact_id: int, fact: FactCreate, db: Session = Depends(get_db)):
-    logger.info(f"Updating fact with ID: {fact_id} for location ID: {location_id} with new description: {fact.description}")
+def update_fact(
+    location_id: int, 
+    fact_id: int, 
+    fact: FactCreate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)  # Ensure user is authenticated
+):
+    logger.info(f"Updating fact with ID: {fact_id} for location ID: {location_id} with new description: {fact.description} by user ID: {current_user.id}")
     
     # Check if the location ID exists
     location_exists = db.query(Location).filter(Location.id == location_id).first()
@@ -100,8 +121,6 @@ def update_fact(location_id: int, fact_id: int, fact: FactCreate, db: Session = 
     
     # Update the fact's attributes
     fact_to_update.description = fact.description
-    # If you want to update the location_id or other fields, you can do so here
-    # fact_to_update.location_id = fact.location_id  # Uncomment if you want to allow location_id updates
 
     try:
         db.commit()  # Commit the changes to the database
@@ -113,3 +132,5 @@ def update_fact(location_id: int, fact_id: int, fact: FactCreate, db: Session = 
         raise HTTPException(status_code=400, detail="An error occurred while updating the fact.")
     except Exception as e:
         logger.error(f"Error updating fact: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="An error occurred while updating the fact.")

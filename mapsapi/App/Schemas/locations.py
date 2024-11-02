@@ -4,8 +4,8 @@ from Schemas.users import User
 
 class LocationBase(BaseModel):
     name: str
-    latitude: str
-    longitude: str
+    latitude: float
+    longitude: float
 
     class Config:
         arbitrary_types_allowed = True
