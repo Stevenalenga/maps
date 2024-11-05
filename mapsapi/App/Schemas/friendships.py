@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class FriendshipBase(BaseModel):
     
     user_id: int
@@ -17,3 +18,5 @@ class Friendship(FriendshipBase):
 
     class Config:
         from_attributes = True 
+
+

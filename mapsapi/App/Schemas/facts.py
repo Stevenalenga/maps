@@ -31,3 +31,6 @@ class FactResponse(BaseModel):
 
     class Config:
         from_attributes = True  
+
+
+
