@@ -5,8 +5,8 @@ __pycache__/
 
 
 mapsapi/app/alembic/versions/
+app\mapsapi.db
 
-mapsapi/app/mapsapi.db
 
 # C extensions
 *.so
