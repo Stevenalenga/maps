@@ -1,9 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from Auth import auth
-from Api import users ,locations,tags,friendships,facts
-
+from Api import users, locations, tags, friendships, facts
+from contextlib import asynccontextmanager
 
 # Initialize the FastAPI application
 app = FastAPI(
@@ -31,12 +31,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create the database tables
-@app.on_event("startup")  # Use on_event for startup
-async def startup():
-  Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create the database tables
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Perform any cleanup here if necessary
 
-  yield  
+app.router.lifespan_context = lifespan
 
 # Include the routers for different API endpoints
 app.include_router(auth.router)

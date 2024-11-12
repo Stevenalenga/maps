@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from Schemas.users import User as Userschema, UserUpdate
-from models import User as Usermodels
-from database import get_db
-from Auth.auth import get_password_hash
-from Utils.oauth2 import get_current_user
+from app.Schemas.users import User as Userschema, UserUpdate
+from app.models import User as Usermodels
+from app.database import get_db
+from app.Auth.auth import get_password_hash
+from app.Utils.oauth2 import get_current_user
 
 
 import logging

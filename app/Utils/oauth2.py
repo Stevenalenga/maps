@@ -6,10 +6,10 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 import os
 import logging
-from models import User
+from app.models import User
 from sqlalchemy.orm import Session
-from database import get_db
-from Schemas.tokendata import TokenData
+from app.database import get_db
+from app.Schemas.tokendata import TokenData
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

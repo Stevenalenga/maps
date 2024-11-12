@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from models import Fact, Location ,User
-from database import get_db
-from Utils.oauth2 import get_current_user
+from app.models import Fact, Location ,User
+from app.database import get_db
+from app.Utils.oauth2 import get_current_user
 from typing import List
 import logging
-from Schemas.facts import FactResponse  ,FactCreate
+from app.Schemas.facts import FactResponse  ,FactCreate
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

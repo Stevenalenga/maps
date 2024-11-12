@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from Schemas.locations import LocationSchema, LocationCreate
-from database import get_db
-from models import User
-from models import Location as LocationModel
+from app.Schemas.locations import LocationSchema, LocationCreate
+from app.database import get_db
+from app.models import User
+from app.models import Location as LocationModel
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import logging
 from fastapi.logger import logger as fastapi_logger
-from Utils.oauth2 import get_current_user
+from app.Utils.oauth2 import get_current_user
 import traceback
+
 
 router = APIRouter(prefix="/api/v2")
 

@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 import logging
-from models import Tag
-from Schemas.tags import TagResponse, TagCreate
-from database import get_db
+from app.models import Tag
+from app.Schemas.tags import TagResponse, TagCreate
+from app.database import get_db
 
 # Configure logging
 

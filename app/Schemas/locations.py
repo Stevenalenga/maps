@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from Schemas.users import User
+from app.Schemas.users import User
 
 class LocationBase(BaseModel):
     name: str
