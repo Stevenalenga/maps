@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, Base
-from Auth import auth
-from Api import users, locations, tags, friendships, facts
+from app.database import engine, Base
+from app.Auth import auth
+from app.Api import users, locations, tags, friendships, facts
 from contextlib import asynccontextmanager
 
 # Initialize the FastAPI application
