@@ -4,6 +4,9 @@ from app.database import engine, Base
 from app.Auth import auth
 from app.Api import users, locations, tags, friendships, facts
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialize the FastAPI application
 app = FastAPI(
