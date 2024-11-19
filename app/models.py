@@ -63,3 +63,19 @@ class Friendship(Base):
 
     user = relationship("User", back_populates="friendships", foreign_keys=[user_id])
     friend = relationship("User", foreign_keys=[friend_id])
+
+class Route(Base):
+    __tablename__ = "routes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    route_id = Column(String, unique=True, index=True, nullable=False)
+    from_ = Column(String, nullable=False)
+    to = Column(String, nullable=False)
+    waypoints = Column(String, nullable=True)
+    distance = Column(String, nullable=False)
+    estimated_time = Column(String, nullable=False)
+    mode = Column(String, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
