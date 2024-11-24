@@ -1,15 +1,15 @@
-# routes/auth.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import logging
 from passlib.context import CryptContext
-from jose import JWTError, jwt, ExpiredSignatureError
+from jose import jwt
 from datetime import datetime, timedelta
-from schemas.auth import UserCreate, UserResponse, UserLogin, Token, TokenData
-from mongoengine import DoesNotExist
-from models import User
+from schemas.auth import UserCreate, UserResponse, UserLogin, Token
+from models.models import User
+from mongoengine.queryset.visitor import Q
 from dotenv import load_dotenv
 import os
+from fastapi import Form
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +25,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # FastAPI Router
 router = APIRouter(prefix="/api/v3")
 logger = logging.getLogger(__name__)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v3/login")
 
 # Utility Functions
 def verify_password(plain_password, hashed_password):
@@ -37,13 +37,13 @@ def get_password_hash(password):
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "iat": datetime.utcnow(), "aud": "fastapi-users"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 @router.post("/signup", response_model=UserResponse)
 async def signup(user: UserCreate):
-    logger.info(f"Signup request received with data: {user}")
+    logger.info(f"Signup request received: {user.username}")
     try:
         existing_user = User.objects(username=user.username).first()
         if existing_user:
@@ -56,17 +56,18 @@ async def signup(user: UserCreate):
         hashed_password = get_password_hash(user.password)
         new_user = User(username=user.username, email=user.email, password=hashed_password)
         new_user.save()
-        logger.info(f"User created successfully: {new_user}")
+        logger.info(f"User created successfully: {user.username}")
         return UserResponse(username=new_user.username, email=new_user.email)
     except Exception as e:
         logger.error(f"Unexpected error during signup: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.post("/login", response_model=Token)
-async def login(user: UserLogin):
+async def login(username: str = Form(...), password: str = Form(...)):
+    logger.info(f"Login attempt for user: {username}")
     try:
-        db_user = User.objects(username=user.username).first() or User.objects(email=user.username).first()
-        if not db_user or not verify_password(user.password, db_user.password):
+        db_user = User.objects(Q(username=username) | Q(email=username)).first()
+        if not db_user or not verify_password(password, db_user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid username or password",
@@ -78,29 +79,3 @@ async def login(user: UserLogin):
     except Exception as e:
         logger.error(f"Unexpected error during login: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"}
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    except JWTError:
-        raise credentials_exception
-
-    user = User.objects(username=token_data.username).first()
-    if user is None:
-        raise credentials_exception
-    return user

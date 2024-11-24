@@ -9,7 +9,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    created_at: Optional[datetime] = None
+    
 
 class UserResponse(UserBase):
     pass

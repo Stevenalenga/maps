@@ -25,3 +25,9 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+class User(BaseModel):
+    id: int
+
+    class Config:
+        from_attributes = True

@@ -3,8 +3,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 import logging
 from passlib.context import CryptContext
 from schemas.users import UserUpdate, UserResponse
-from models import User
+from models.models import User
 from mongoengine import DoesNotExist
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from pydantic import ValidationError
+from schemas.tokendata import TokenData
+from utils.auth_utils import get_current_user
 
 # FastAPI Router
 router = APIRouter(prefix="/api/v3")
@@ -17,8 +22,13 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def get_password_hash(password):
     return pwd_context.hash(password)
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 @router.put("/update/{user_id}", response_model=UserResponse)
-async def update_user(user_id: str, user_update: UserUpdate):
+async def update_user(user_id: str, user_update: UserUpdate, current_user: User = Depends(get_current_user)):
+    if str(current_user.id) != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this user")
+
     logger.info(f"Update request received for user_id: {user_id} with data: {user_update}")
     try:
         db_user = User.objects(id=user_id).first()
@@ -38,7 +48,10 @@ async def update_user(user_id: str, user_update: UserUpdate):
         raise HTTPException(status_code=500, detail="An error occurred while updating the user")
 
 @router.delete("/delete/{user_id}", response_model=UserResponse)
-async def delete_user(user_id: str):
+async def delete_user(user_id: str, current_user: User = Depends(get_current_user)):
+    if str(current_user.id) != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this user")
+
     logger.info(f"Delete request received for user_id: {user_id}")
     try:
         db_user = User.objects(id=user_id).first()

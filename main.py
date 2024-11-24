@@ -1,10 +1,10 @@
-import sys
-import os
 from fastapi import FastAPI
-from dotenv import load_dotenv
-from mongoengine import connect
 from routes.auth import router as auth_router
 from routes.users import router as users_router
+from routes.locations import router as locations_router
+from routes.tags import router as tags_router
+from routes.friendships import router as friendships_router
+from routes.facts import router as facts_router
 from database.database import db
 
 
@@ -28,17 +28,20 @@ app = FastAPI(
 db()
 
 # Include routers
-app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+app.include_router(auth_router, tags=["Authentication"])
 app.include_router(users_router, prefix="/users",tags=["users"])
-"""
-app.include_router(locations.router, tags=["locations"])
-app.include_router(tags.router, tags=["tags"])
-app.include_router(friendships.router, tags=["friendships"])
-app.include_router(facts.router, tags=["facts"])
-"""
+
+app.include_router(locations_router, prefix="/locations", tags=["locations"])
+app.include_router(tags_router, prefix="/tags", tags=["tags"])
+app.include_router(friendships_router, prefix="/friendships",tags=["friendships"])
+app.include_router(facts_router, prefix="/facts", tags=["facts"])
 
 @app.get("/")
 async def root():
     return {"message": "It works!"}
+
+@app.get("/status")
+async def status():
+    return {"status": "API is running"}
 
 
