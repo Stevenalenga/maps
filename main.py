@@ -38,7 +38,7 @@ app.include_router(facts_router, prefix="/facts", tags=["facts"])
 
 @app.get("/")
 async def root():
-    return {"message": "It works!"}
+    return {"Welcome to our maps api project": "This is a project meant to give details on locations"}
 
 @app.get("/status")
 async def status():

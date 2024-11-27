@@ -23,8 +23,10 @@ class Location(Document):
     name = StringField(required=True)
     latitude = FloatField(required=True)
     longitude = FloatField(required=True)
+    description = StringField(required=True, unique=True)  
     user_id = ReferenceField(User, reverse_delete_rule=CASCADE)
     created_at = DateTimeField(default=datetime.utcnow)
+     
 
 class Friendship(Document):
     user_id = ReferenceField(User, required=True)
@@ -35,4 +37,5 @@ class Fact(Document):
     description = StringField(required=True)
     location_id = ReferenceField(Location, reverse_delete_rule=CASCADE)
     user_id = ReferenceField(User, reverse_delete_rule=CASCADE)
+    tags = ListField(ReferenceField(Tag, reverse_delete_rule=CASCADE))  # Ensure proper handling of tag deletions
     created_at = DateTimeField(default=datetime.utcnow)

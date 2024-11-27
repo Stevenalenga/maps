@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List
 
 class FactBase(BaseModel):
     description: str
@@ -26,11 +27,9 @@ class FactResponse(BaseModel):
     description: str
     location_id: str
     user_id : str
+    tags: List[str]  # Add this line
     created_at: datetime
     
 
     class Config:
         from_attributes = True
-
-
-
