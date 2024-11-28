@@ -1,15 +1,45 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordBearer
 import logging
 from passlib.context import CryptContext
-from jose import jwt
+from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from schemas.auth import UserCreate, UserResponse, UserLogin, Token
 from models.models import User
 from mongoengine.queryset.visitor import Q
 from dotenv import load_dotenv
 import os
-from fastapi import Form
+from pydantic import EmailStr
+
+app = FastAPI()
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail},
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=400,
+        content={"message": "Validation error", "details": exc.errors()},
+    )
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error"},
+    )
+
+
+
 
 # Load environment variables
 load_dotenv()
@@ -41,6 +71,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+# Update UserCreate and UserResponse schemas
+
+
 @router.post("/signup", response_model=UserResponse)
 async def signup(user: UserCreate):
     logger.info(f"Signup request received: {user.username}")
@@ -58,9 +91,11 @@ async def signup(user: UserCreate):
         new_user.save()
         logger.info(f"User created successfully: {user.username}")
         return UserResponse(username=new_user.username, email=new_user.email)
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.error(f"Unexpected error during signup: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
 
 @router.post("/login", response_model=Token)
 async def login(username: str = Form(...), password: str = Form(...)):
@@ -76,6 +111,14 @@ async def login(username: str = Form(...), password: str = Form(...)):
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(data={"sub": db_user.username}, expires_delta=access_token_expires)
         return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException as e:
+        raise e
+    except JWTError as e:
+        logger.error(f"JWT error during login: {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token creation failed")
     except Exception as e:
         logger.error(f"Unexpected error during login: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+# Include your router
+app.include_router(router)

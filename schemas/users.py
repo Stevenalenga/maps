@@ -1,19 +1,20 @@
 # schemas/auth.py
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from typing import Optional
 
 class UserBase(BaseModel):
     username: str
-    email: str
-
-class UserCreate(UserBase):
+    email: EmailStr
     password: str
+
+
 
 class UserUpdate(UserBase):
     password: Optional[str] = None
 
 class UserResponse(UserBase):
-    pass
+    username: str
+    email: EmailStr
 
 class UserLogin(BaseModel):
     username: str
