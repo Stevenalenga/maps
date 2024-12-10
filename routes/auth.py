@@ -8,13 +8,11 @@ import logging
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from schemas.auth import UserCreate, UserResponse, UserLogin, Token
+from schemas.auth import UserCreate, UserResponse, Token
 from models.models import User
 from mongoengine.queryset.visitor import Q
 from dotenv import load_dotenv
 import os
-from pydantic import EmailStr
-
 app = FastAPI()
 
 @app.exception_handler(StarletteHTTPException)
@@ -71,25 +69,26 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# Update UserCreate and UserResponse schemas
 
 
 @router.post("/signup", response_model=UserResponse)
-async def signup(user: UserCreate):
-    logger.info(f"Signup request received: {user.username}")
+async def signup(username: str = Form(...), email: str = Form(...), password: str = Form(...)):
+    logger.info(f"Signup request received: {username}")
     try:
-        existing_user = User.objects(username=user.username).first()
+        existing_user = User.objects(username=username).first()
         if existing_user:
+            logger.info(f"Username already exists: {username}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
         
-        existing_email = User.objects(email=user.email).first()
+        existing_email = User.objects(email=email).first()
         if existing_email:
+            logger.info(f"Email already exists: {email}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
         
-        hashed_password = get_password_hash(user.password)
-        new_user = User(username=user.username, email=user.email, password=hashed_password)
+        hashed_password = get_password_hash(password)
+        new_user = User(username=username, email=email, password=hashed_password)
         new_user.save()
-        logger.info(f"User created successfully: {user.username}")
+        logger.info(f"User created successfully: {username}")
         return UserResponse(username=new_user.username, email=new_user.email)
     except HTTPException as e:
         raise e
