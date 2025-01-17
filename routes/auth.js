@@ -15,6 +15,16 @@ const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
+// Middleware to log responses
+router.use((req, res, next) => {
+  const originalSend = res.send;
+  res.send = function (body) {
+    logger.info(`Response: ${res.statusCode} - ${body}`);
+    originalSend.call(this, body);
+  };
+  next();
+});
+
 /**
  * @route POST /api/v3/signup
  * @desc User Signup
@@ -42,7 +52,7 @@ router.post("/signup", async (req, res) => {
     res.status(201).json({ access_token: token, token_type: "bearer" });
     logger.info(`User ${user.username} signed up successfully`);
   } catch (err) {
-    console.error("Error during signup:", err);
+    logger.error("Error during signup:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -67,7 +77,7 @@ router.post("/login", async (req, res) => {
     res.status(200).json({ access_token: token, token_type: "bearer" });
     logger.info(`User ${user.username} logged in successfully`);
   } catch (err) {
-    console.error("Error during login:", err);
+    logger.error("Error during login:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
