@@ -2,11 +2,11 @@ const express = require("express");
 const { ObjectId } = require("mongoose").Types;
 const router = express.Router();
 const Tag = require("../models/Tag"); // Import the Tag model
-const authMiddleware = require("../middleware/authMiddleware");
+const { authenticateToken } = require("../utils/authenticate_token"); // Import the authenticateToken middleware
 const logger = require("../utils/logger"); // Utility for logging
 
 // Create a new tag
-router.post("/tags", authMiddleware, async (req, res) => {
+router.post("/tags", authenticateToken, async (req, res) => {
   const { name } = req.body;
   const currentUser = req.user;
 
@@ -61,7 +61,7 @@ router.get("/tags/search", async (req, res) => {
 });
 
 // Delete a tag
-router.delete("/tags/:tagId", authMiddleware, async (req, res) => {
+router.delete("/tags/:tagId", authenticateToken, async (req, res) => {
   const { tagId } = req.params;
   const currentUser = req.user;
 

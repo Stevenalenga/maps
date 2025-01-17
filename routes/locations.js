@@ -1,13 +1,13 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { Location, Fact, Tag, User } = require("../models"); // Import Mongoose models
-const authMiddleware = require("../middleware/authMiddleware");
+const { authenticateToken } = require("../utils/authenticate_token");
 const logger = require("../utils/logger");
 
 const router = express.Router();
 
 // Fetch user locations
-router.get("/locations", authMiddleware, async (req, res) => {
+router.get("/locations", authenticateToken, async (req, res) => {
   const userId = req.user.id;
   logger.info(`Fetching locations for user: ${userId}`);
 
@@ -34,7 +34,7 @@ router.get("/locations", authMiddleware, async (req, res) => {
 });
 
 // Create a new location
-router.post("/locations", authMiddleware, async (req, res) => {
+router.post("/locations", authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { name, latitude, longitude, description, tags } = req.body;
 
@@ -81,7 +81,7 @@ router.post("/locations", authMiddleware, async (req, res) => {
 });
 
 // Update a location
-router.put("/locations/:locationId", authMiddleware, async (req, res) => {
+router.put("/locations/:locationId", authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { locationId } = req.params;
   const { name, latitude, longitude, description, tags } = req.body;
@@ -128,7 +128,7 @@ router.put("/locations/:locationId", authMiddleware, async (req, res) => {
 });
 
 // Delete a location
-router.delete("/locations/:locationId", authMiddleware, async (req, res) => {
+router.delete("/locations/:locationId", authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { locationId } = req.params;
 
@@ -150,7 +150,7 @@ router.delete("/locations/:locationId", authMiddleware, async (req, res) => {
 });
 
 // Count user locations
-router.get("/locations/count", authMiddleware, async (req, res) => {
+router.get("/locations/count", authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
   logger.info(`Counting locations for user: ${userId}`);

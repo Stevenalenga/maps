@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const { Fact, Location, Tag } = require("../models"); // Import Mongoose models
-const authMiddleware = require("../middleware/authMiddleware");
+const { authenticateToken } = require("../utils/authenticate_token"); // Import the authenticateToken middleware
 const logger = require("../utils/logger"); // Logger utility
 
 // Get facts by location ID
-router.get("/locations/:locationId/facts", authMiddleware, async (req, res) => {
+router.get("/locations/:locationId/facts", authenticateToken, async (req, res) => {
   const { locationId } = req.params;
   const userId = req.user.id;
 
@@ -35,7 +35,7 @@ router.get("/locations/:locationId/facts", authMiddleware, async (req, res) => {
 });
 
 // Create a fact for a location
-router.post("/locations/:locationId/facts", authMiddleware, async (req, res) => {
+router.post("/locations/:locationId/facts", authenticateToken, async (req, res) => {
   const { locationId } = req.params;
   const { description, tags } = req.body;
   const userId = req.user.id;
@@ -84,7 +84,7 @@ router.post("/locations/:locationId/facts", authMiddleware, async (req, res) => 
 });
 
 // Delete a fact by ID
-router.delete("/facts/:factId", authMiddleware, async (req, res) => {
+router.delete("/facts/:factId", authenticateToken, async (req, res) => {
   const { factId } = req.params;
   const userId = req.user.id;
 
@@ -106,7 +106,7 @@ router.delete("/facts/:factId", authMiddleware, async (req, res) => {
 });
 
 // Update a fact by ID
-router.put("/locations/:locationId/facts/:factId", authMiddleware, async (req, res) => {
+router.put("/locations/:locationId/facts/:factId", authenticateToken, async (req, res) => {
   const { locationId, factId } = req.params;
   const { description } = req.body;
   const userId = req.user.id;

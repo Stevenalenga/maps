@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const { User, Friendship } = require("../models"); // Import Mongoose models
-const authMiddleware = require("../middleware/authMiddleware");
+const { authenticateToken } = require("../utils/authenticate_token"); // Import the authenticateToken middleware
 const logger = require("../utils/logger"); // Logger utility
 const mongoose = require("mongoose");
 
 // Create friendship
-router.post("/friendships/:friendId", authMiddleware, async (req, res) => {
+router.post("/friendships/:friendId", authenticateToken, async (req, res) => {
   const { friendId } = req.params;
   const userId = req.user.id;
 
@@ -51,7 +51,7 @@ router.post("/friendships/:friendId", authMiddleware, async (req, res) => {
 });
 
 // Get friendships
-router.get("/friendships", authMiddleware, async (req, res) => {
+router.get("/friendships", authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
   logger.info(`Fetching friendships for user: ${userId}`);
@@ -75,7 +75,7 @@ router.get("/friendships", authMiddleware, async (req, res) => {
 });
 
 // Delete friendship
-router.delete("/friendships/:friendshipId", authMiddleware, async (req, res) => {
+router.delete("/friendships/:friendshipId", authenticateToken, async (req, res) => {
   const { friendshipId } = req.params;
   const userId = req.user.id;
 
