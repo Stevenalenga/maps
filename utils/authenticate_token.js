@@ -6,7 +6,6 @@ dotenv.config();  // Load environment variables from .env
 
 const SECRET_KEY = process.env.SECRET_KEY;
 const ALGORITHM = process.env.ALGORITHM || 'HS256';
-const ACCESS_TOKEN_EXPIRE_MINUTES = parseInt(process.env.ACCESS_TOKEN_EXPIRE_MINUTES) || 30;
 
 // Middleware to authenticate JWT token
 const authenticateToken = async (req, res, next) => {
@@ -31,25 +30,4 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Middleware to get current user
-const getCurrentUser = async (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  const credentialsException = new Error('Could not validate credentials');
-  credentialsException.status = 401;
-  credentialsException.headers = { 'WWW-Authenticate': 'Bearer' };
-
-  try {
-    const tokenData = verifyAccessToken(token, credentialsException);
-    const user = await User.findById(tokenData.id);
-    if (!user) {
-      throw credentialsException;
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(credentialsException.status).json({ message: credentialsException.message });
-  }
-};
-
-
-module.exports = { authenticateToken, getCurrentUser };
+module.exports = { authenticateToken };

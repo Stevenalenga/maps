@@ -33,7 +33,6 @@ router.get("/:userId", authenticateToken, async (req, res) => {
   }
 });
 
-
 // Update user
 router.put("/update/:userId", authenticateToken, async (req, res) => {
   const { userId } = req.params;
@@ -79,7 +78,7 @@ router.delete("/delete/:userId", authenticateToken, async (req, res) => {
       return res.status(404).json({ detail: "User not found" });
     }
 
-    await user.remove();
+    await User.deleteOne({ _id: userId });
     console.log(`User deleted successfully: ${user.username}`);
     res.json({ detail: "User deleted successfully" });
   } catch (error) {

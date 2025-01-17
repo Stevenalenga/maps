@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('./models');  // Assuming User is your Mongoose model
-const { TokenData } = require('./schemas/auth');  // Assuming TokenData schema
+const { User } = require('../models/models');  // Assuming User is your Mongoose model
+const { tokenDataSchema } = require('../schemas/auth');  // Assuming TokenData schema
 const dotenv = require('dotenv');
 const { Unauthorized } = require('http-errors');
 const logger = require('pino')();  // Logger setup
@@ -10,6 +10,15 @@ dotenv.config();
 // JWT Configuration
 const SECRET_KEY = process.env.SECRET_KEY || 'your_secret_key';
 const ALGORITHM = process.env.ALGORITHM || 'HS256';
+const ACCESS_TOKEN_EXPIRE_MINUTES = parseInt(process.env.ACCESS_TOKEN_EXPIRE_MINUTES) || 30;
+
+const createAccessToken = (data) => {
+  const toEncode = { ...data };
+  const expire = Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRE_MINUTES * 60;
+  toEncode.exp = expire;
+  const encodedJwt = jwt.sign(toEncode, SECRET_KEY, { algorithm: ALGORITHM });
+  return encodedJwt;
+};
 
 const oauth2Scheme = 'Bearer';  // For token validation
 
@@ -32,13 +41,13 @@ async function getCurrentUser(req, res, next) {
       throw new Unauthorized('Could not validate credentials');
     }
 
-    const tokenData = new TokenData({ username });
+    const tokenDataSchema = new tokenDataSchema({ id });
 
     // Retrieve the user from the database
-    const user = await User.findOne({ username: tokenData.username });
+    const user = await User.findOne({ id: tokenDataSchema.id });
 
     if (!user) {
-      logger.warn(`User not found for username: ${tokenData.username}`);
+      logger.warn(`User not found for username: ${tokenDataSchema.id}`);
       throw new Unauthorized('Could not validate credentials');
     }
 
@@ -62,4 +71,4 @@ async function getCurrentUser(req, res, next) {
   }
 }
 
-module.exports = { getCurrentUser };
+module.exports = { getCurrentUser, createAccessToken };
