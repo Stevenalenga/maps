@@ -21,14 +21,14 @@ router.get("/locations", authenticateToken, async (req, res) => {
       latitude: location.latitude,
       longitude: location.longitude,
       description: location.description,
-      userId,
+      user_id: userId,
       createdAt: location.createdAt,
       tags: location.tags.map((tag) => tag.name),
     }));
 
     res.json(response);
   } catch (err) {
-    logger.error(`Error fetching locations for user ${userId}: ${err.message}`);
+    logger.error(`Error fetching locations for user ${user_id}: ${err.message}`);
     res.status(500).json({ error: "An error occurred while fetching locations." });
   }
 });
@@ -48,15 +48,15 @@ router.post("/locations", authenticateToken, async (req, res) => {
       latitude,
       longitude,
       description,
-      userId,
+      user_id: userId,
       tags: tagObjects,
     });
     await newLocation.save();
 
     const newFact = new Fact({
       description,
-      locationId: newLocation._id,
-      userId,
+      location_id: newLocation._id,
+      user_id: userId,
     });
     await newFact.save();
 
