@@ -1,7 +1,7 @@
 const express = require("express");
 const { ObjectId } = require("mongoose").Types;
 const router = express.Router();
-const Tag = require("../models/Tag"); // Import the Tag model
+const Tag = require("../models/models"); // Import the Tag model
 const { authenticateToken } = require("../utils/authenticate_token"); // Import the authenticateToken middleware
 const logger = require("../utils/logger"); // Utility for logging
 

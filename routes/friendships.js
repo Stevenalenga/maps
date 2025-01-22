@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { User, Friendship } = require("../models"); // Import Mongoose models
+const { User, Friendship } = require("../models/models"); // Import Mongoose models
 const { authenticateToken } = require("../utils/authenticate_token"); // Import the authenticateToken middleware
 const logger = require("../utils/logger"); // Logger utility
 const mongoose = require("mongoose");

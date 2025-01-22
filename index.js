@@ -7,10 +7,10 @@ dotenv.config(); // Load environment variables
 
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
-// locationsRouter = require("./routes/locations");
-//const tagsRouter = require("./routes/tags");
-//const friendshipsRouter = require("./routes/friendships");
-//const factsRouter = require("./routes/facts");
+const locationsRouter = require("./routes/locations");
+const tagsRouter = require("./routes/tags");
+const friendshipsRouter = require("./routes/friendships");
+const factsRouter = require("./routes/facts");
 
 // Initialize Express app
 const app = express();
@@ -46,10 +46,10 @@ mongoose
 // Routes
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
-//app.use("/locations", locationsRouter);
-//app.use("/tags", tagsRouter);
-//app.use("/friendships", friendshipsRouter);
-//app.use("/facts", factsRouter);
+app.use("/locations", locationsRouter);
+app.use("/tags", tagsRouter);
+app.use("/friendships", friendshipsRouter);
+app.use("/facts", factsRouter);
 
 // Root endpoint
 app.get("/", (req, res) => {

@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { Location, Fact, Tag, User } = require("../models"); // Import Mongoose models
+const { Location, Fact, Tag, User } = require("../models/models"); // Import Mongoose models
 const { authenticateToken } = require("../utils/authenticate_token");
 const logger = require("../utils/logger");
 
