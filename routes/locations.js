@@ -12,7 +12,7 @@ router.get("/locations", authenticateToken, async (req, res) => {
   logger.info(`Fetching locations for user: ${userId}`);
 
   try {
-    const userLocations = await Location.find({ userId }).populate("tags");
+    const userLocations = await Location.find({ user_id: userId }).populate("tags");  // Change this line
     logger.info(`Retrieved ${userLocations.length} locations for user: ${userId}`);
 
     const response = userLocations.map((location) => ({
@@ -21,17 +21,16 @@ router.get("/locations", authenticateToken, async (req, res) => {
       latitude: location.latitude,
       longitude: location.longitude,
       description: location.description,
-      user_id: userId,
-      createdAt: location.createdAt,
-      tags: location.tags.map((tag) => tag.name),
+      //tags: location.tags,
     }));
 
-    res.json(response);
-  } catch (err) {
-    logger.error(`Error fetching locations for user ${user_id}: ${err.message}`);
-    res.status(500).json({ error: "An error occurred while fetching locations." });
+    res.status(200).json(response);
+  } catch (error) {
+    logger.error(`Error fetching locations for user ${userId}: ${error.message}`);
+    res.status(500).json({ message: "Error fetching locations" });
   }
 });
+
 
 // Create a new location
 router.post("/locations", authenticateToken, async (req, res) => {

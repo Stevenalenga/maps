@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const { User } = require("../models/models");
 const logger = require("../utils/logger");
 const { createAccessToken } = require("../utils/auth_utils");
+const config = require("../config");
 
 dotenv.config();
 const router = express.Router();

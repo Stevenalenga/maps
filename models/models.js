@@ -33,6 +33,7 @@ const locationSchema = new mongoose.Schema({
   longitude: { type: Number, required: true },
   description: { type: String, required: true, unique: true },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag' }],  // Add this line
   created_at: { type: Date, default: Date.now },
 });
 

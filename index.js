@@ -37,12 +37,12 @@ const appMetadata = {
 };
 
 // MongoDB connection
-const dbUri = process.env.MONGO_URI; // Use the MongoDB URI from the .env file
+const dbUri = `${process.env.MONGO_URI}/${process.env.DATABASE_NAME}`; // Use the MongoDB URI and database name from the .env file
 mongoose
   .connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
-
+  
 // Routes
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
