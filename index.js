@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const config = require("./config"); // Import configurations from config.js
 
 dotenv.config(); // Load environment variables
 
@@ -37,7 +38,7 @@ const appMetadata = {
 };
 
 // MongoDB connection
-const dbUri = `${process.env.MONGO_URI}/${process.env.DATABASE_NAME}`; // Use the MongoDB URI and database name from the .env file
+const dbUri = `${config.mongodbUri}/${config.database_name}`; 
 mongoose
   .connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Connected to MongoDB"))

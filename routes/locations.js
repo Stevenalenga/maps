@@ -40,6 +40,13 @@ router.post("/locations", authenticateToken, async (req, res) => {
   logger.info(`Creating new location for user: ${userId}`);
 
   try {
+    // Check if the user has already created a location with the same details
+    const existingLocation = await Location.findOne({ user_id: userId, name, latitude, longitude, description });
+    if (existingLocation) {
+      logger.warn(`User ${userId} already has a location with the same details`);
+      return res.status(400).json({ error: "You have already created a location with the same details." });
+    }
+
     const tagObjects = await Tag.find({ name: { $in: tags } });
 
     const newLocation = new Location({
@@ -66,16 +73,11 @@ router.post("/locations", authenticateToken, async (req, res) => {
       latitude: newLocation.latitude,
       longitude: newLocation.longitude,
       description: newLocation.description,
-      userId,
-      createdAt: newLocation.createdAt,
-      tags: tagObjects.map((tag) => tag.name),
+      tags: newLocation.tags,
     });
-  } catch (err) {
-    logger.error(`Error creating location for user ${userId}: ${err.message}`);
-    if (err.code === 11000) {
-      return res.status(400).json({ error: "Location with the same latitude and longitude already exists." });
-    }
-    res.status(500).json({ error: "An unexpected error occurred." });
+  } catch (error) {
+    logger.error(`Error creating location for user ${userId}: ${error.message}`);
+    res.status(500).json({ message: "Error creating location" });
   }
 });
 
@@ -88,7 +90,7 @@ router.put("/locations/:locationId", authenticateToken, async (req, res) => {
   logger.info(`Updating location ID: ${locationId} for user: ${userId}`);
 
   try {
-    const existingLocation = await Location.findOne({ _id: locationId, userId });
+    const existingLocation = await Location.findOne({ _id: locationId, user_id: userId }); // Ensure correct field name
     if (!existingLocation) {
       logger.warn(`Location ID ${locationId} not found for user: ${userId}`);
       return res.status(404).json({ error: "Location not found." });
@@ -103,26 +105,11 @@ router.put("/locations/:locationId", authenticateToken, async (req, res) => {
     existingLocation.tags = tagObjects;
 
     await existingLocation.save();
-
-    await Fact.updateMany(
-      { locationId: existingLocation._id },
-      { description: existingLocation.description }
-    );
-
-    logger.info(`Location updated with ID: ${existingLocation._id} for user: ${userId}`);
-    res.json({
-      id: existingLocation._id,
-      name: existingLocation.name,
-      latitude: existingLocation.latitude,
-      longitude: existingLocation.longitude,
-      description: existingLocation.description,
-      userId,
-      createdAt: existingLocation.createdAt,
-      tags: tagObjects.map((tag) => tag.name),
-    });
-  } catch (err) {
-    logger.error(`Error updating location ID ${locationId} for user ${userId}: ${err.message}`);
-    res.status(500).json({ error: "An unexpected error occurred." });
+    logger.info(`Location ID: ${locationId} updated successfully for user: ${userId}`);
+    res.status(200).json({ message: "Location updated successfully" });
+  } catch (error) {
+    logger.error(`Error updating location ID ${locationId} for user ${userId}: ${error.message}`);
+    res.status(500).json({ message: "Error updating location" });
   }
 });
 
@@ -134,7 +121,7 @@ router.delete("/locations/:locationId", authenticateToken, async (req, res) => {
   logger.info(`Attempting to delete location ID: ${locationId} for user: ${userId}`);
 
   try {
-    const location = await Location.findOneAndDelete({ _id: locationId, userId });
+    const location = await Location.findOneAndDelete({ _id: locationId, user_id: userId }); // Ensure correct field name
     if (!location) {
       logger.warn(`Location ID ${locationId} not found for user: ${userId}`);
       return res.status(404).json({ error: "Location not found." });
@@ -142,11 +129,12 @@ router.delete("/locations/:locationId", authenticateToken, async (req, res) => {
 
     logger.info(`Location ID ${locationId} deleted successfully for user: ${userId}`);
     res.status(204).send();
-  } catch (err) {
-    logger.error(`Error deleting location ID ${locationId} for user ${userId}: ${err.message}`);
-    res.status(500).json({ error: "An unexpected error occurred." });
+  } catch (error) {
+    logger.error(`Error deleting location ID ${locationId} for user ${userId}: ${error.message}`);
+    res.status(500).json({ message: "Error deleting location" });
   }
 });
+
 
 // Count user locations
 router.get("/locations/count", authenticateToken, async (req, res) => {
@@ -155,12 +143,37 @@ router.get("/locations/count", authenticateToken, async (req, res) => {
   logger.info(`Counting locations for user: ${userId}`);
 
   try {
-    const count = await Location.countDocuments({ userId });
-    logger.info(`User ${userId} has ${count} locations.`);
-    res.json(count);
-  } catch (err) {
-    logger.error(`Error counting locations for user ${userId}: ${err.message}`);
-    res.status(500).json({ error: "An error occurred while counting locations." });
+    const count = await Location.countDocuments({ user_id: userId }); // Ensure correct field name
+    res.status(200).json({ count });
+  } catch (error) {
+    logger.error(`Error counting locations for user ${userId}: ${error.message}`);
+    res.status(500).json({ message: "Error counting locations" });
+  }
+});
+
+
+// Fetch all locations for all users
+router.get("/locations/all", authenticateToken, async (req, res) => {
+  logger.info(`Fetching all locations for all users`);
+
+  try {
+    const allLocations = await Location.find().populate("tags");
+    logger.info(`Retrieved ${allLocations.length} locations for all users`);
+
+    const response = allLocations.map((location) => ({
+      id: location._id,
+      name: location.name,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      description: location.description,
+      user_id: location.user_id,
+      tags: location.tags,
+    }));
+
+    res.status(200).json(response);
+  } catch (error) {
+    logger.error(`Error fetching all locations: ${error.message}`);
+    res.status(500).json({ message: "Error fetching all locations" });
   }
 });
 

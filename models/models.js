@@ -31,11 +31,12 @@ const locationSchema = new mongoose.Schema({
   name: { type: String, required: true },
   latitude: { type: Number, required: true },
   longitude: { type: Number, required: true },
-  description: { type: String, required: true, unique: true },
+  description: { type: String, required: true }, // Ensure no unique constraint
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag' }],  // Add this line
+  tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag' }],
   created_at: { type: Date, default: Date.now },
 });
+
 
 // Friendship Schema
 const friendshipSchema = new mongoose.Schema({

@@ -1,75 +1,30 @@
 const express = require("express");
-const router = express.Router();
-const { User, Friendship } = require("../models/models"); // Import Mongoose models
-const { authenticateToken } = require("../utils/authenticate_token"); // Import the authenticateToken middleware
-const logger = require("../utils/logger"); // Logger utility
 const mongoose = require("mongoose");
+const { Friendship } = require("../models/models"); // Import Mongoose models
+const { authenticateToken } = require("../utils/authenticate_token");
+const logger = require("../utils/logger");
 
-// Create friendship
-router.post("/friendships/:friendId", authenticateToken, async (req, res) => {
-  const { friendId } = req.params;
-  const userId = req.user.id;
+const router = express.Router();
 
-  logger.info(`Creating friendship for user: ${userId} with friend: ${friendId}`);
-
-  try {
-    // Ensure the friend exists
-    const friend = await User.findById(friendId);
-    if (!friend) {
-      logger.warn(`Friend with ID ${friendId} does not exist.`);
-      return res.status(404).json({ error: "Friend not found." });
-    }
-
-    // Check if the friendship already exists
-    const existingFriendship = await Friendship.findOne({
-      userId,
-      friendId,
-    });
-    if (existingFriendship) {
-      logger.warn(`Friendship already exists between user ${userId} and friend ${friendId}.`);
-      return res.status(400).json({ error: "Friendship already exists." });
-    }
-
-    // Create and save the friendship
-    const newFriendship = new Friendship({
-      userId,
-      friendId,
-    });
-    await newFriendship.save();
-
-    logger.info(`Friendship created successfully: ${newFriendship._id}`);
-    return res.status(201).json({
-      id: newFriendship._id,
-      userId: newFriendship.userId,
-      friendId: newFriendship.friendId,
-      createdAt: newFriendship.createdAt,
-    });
-  } catch (err) {
-    logger.error(`Error creating friendship: ${err.message}`);
-    return res.status(500).json({ error: "An error occurred while creating the friendship." });
-  }
-});
-
-// Get friendships
-router.get("/friendships", authenticateToken, async (req, res) => {
-  const userId = req.user.id;
-
+// Fetch friendships of a specific user
+router.get("/friendships/user/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
   logger.info(`Fetching friendships for user: ${userId}`);
 
   try {
-    const friendships = await Friendship.find({ userId }).populate("friendId").exec();
+    const friendships = await Friendship.find({ user_id: userId }).populate("friend_id");
+    logger.info(`Retrieved ${friendships.length} friendships for user: ${userId}`);
 
-    logger.info(`Found ${friendships.length} friendships.`);
-    return res.json(
-      friendships.map((friendship) => ({
-        id: friendship._id,
-        userId: friendship.userId,
-        friendId: friendship.friendId._id,
-        createdAt: friendship.createdAt,
-      }))
-    );
+    const response = friendships.map((friendship) => ({
+      id: friendship._id,
+      user_id: friendship.user_id,
+      friend_id: friendship.friend_id,
+      created_at: friendship.created_at,
+    }));
+
+    res.status(200).json(response);
   } catch (err) {
-    logger.error(`Error fetching friendships: ${err.message}`);
+    logger.error(`Error fetching friendships for user ${userId}: ${err.message}`);
     return res.status(500).json({ error: "An error occurred while fetching friendships." });
   }
 });
@@ -89,21 +44,33 @@ router.delete("/friendships/:friendshipId", authenticateToken, async (req, res) 
     }
 
     // Find and delete the friendship
-    const friendshipToDelete = await Friendship.findOneAndDelete({
-      _id: friendshipId,
-      userId,
-    });
-
+    const friendshipToDelete = await Friendship.findOneAndDelete({ _id: friendshipId, user_id: userId });
     if (!friendshipToDelete) {
-      logger.warn(`Friendship with ID ${friendshipId} not found.`);
+      logger.warn(`Friendship ID ${friendshipId} not found for user: ${userId}`);
       return res.status(404).json({ error: "Friendship not found." });
     }
 
-    logger.info(`Friendship with ID ${friendshipId} deleted successfully.`);
-    return res.status(204).send();
+    logger.info(`Friendship ID ${friendshipId} deleted successfully for user: ${userId}`);
+    res.status(204).send();
   } catch (err) {
-    logger.error(`Error deleting friendship: ${err.message}`);
-    return res.status(500).json({ error: "An error occurred while deleting the friendship." });
+    logger.error(`Error deleting friendship ID ${friendshipId} for user ${userId}: ${err.message}`);
+    res.status(500).json({ error: "Error deleting friendship" });
+  }
+});
+
+// Get friendship count for a specific user
+router.get("/friendships/user/:userId/count", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  logger.info(`Counting friendships for user: ${userId}`);
+
+  try {
+    const count = await Friendship.countDocuments({ user_id: userId });
+    logger.info(`User ${userId} has ${count} friendships`);
+
+    res.status(200).json({ count });
+  } catch (err) {
+    logger.error(`Error counting friendships for user ${userId}: ${err.message}`);
+    return res.status(500).json({ error: "An error occurred while counting friendships." });
   }
 });
 
