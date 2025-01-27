@@ -42,6 +42,7 @@ const locationSchema = new mongoose.Schema({
 const friendshipSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   friend_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  status: { type: String, enum: ['pending', 'accepted'], default: 'pending' }, // Add status field
   created_at: { type: Date, default: Date.now },
 });
 
